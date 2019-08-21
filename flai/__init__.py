@@ -27,14 +27,22 @@ class EpollSelector:
         for sock in self._fd_with_sock.values():
             sock.close()
 
+class Request:
+    def __init__(self, sock: socket.socket):
+        self.socket = sock
+    
+    @property
+    def bytes(self) -> bytes:
+        return self.socket.recv(1024)
+
 class Flai:
     def __init__(self):
         self.selector = EpollSelector()
-        self.routes: Dict[int, Callable[[bytes], None]] = dict()
+        self.routes: Dict[int, Callable[[Request], None]] = dict()
         self.__request_type_size = 1
         self.__health_check_period = 5.
 
-    def event(self, case: int) -> Callable[[bytes], None]:
+    def event(self, case: int):
         if case in self.routes:
             raise Exception("Duplicate option")
 
@@ -74,7 +82,7 @@ class Flai:
                         self.selector.unregister(sock)
                     else:
                         if request_type in self.routes:
-                            self.routes[request_type](sock.recv(1024))
+                            self.routes[request_type](Request(sock))
                         else:
                             print("Not founded request type:", request_type)
 
@@ -85,10 +93,3 @@ class Flai:
     def close(self):
         self.selector.close()
 
-flai = Flai()
-
-@flai.event(1)
-def handler(data: bytes):
-    print('Received:', data)
-
-flai.run("0.0.0.0", 9000)
