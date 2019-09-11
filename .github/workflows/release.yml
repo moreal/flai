@@ -1,0 +1,19 @@
+on: push
+name: on tag pushed
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        version: 3.7
+    - name: python setup.py sdist
+      run: python setup.py sdist
+    - name: Publish package
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: moreal
+        password: ${{ secrets.pypi_password }}
