@@ -1,7 +1,6 @@
 import socket
 import select
-from enum import Enum
-from typing import Callable, Type, Tuple, List, Dict
+from typing import Callable, Tuple, List, Dict
 
 
 class EpollSelector:
@@ -27,6 +26,7 @@ class EpollSelector:
         for sock in self._fd_with_sock.values():
             sock.close()
 
+
 class Request:
     def __init__(self, sock: socket.socket):
         self.socket = sock
@@ -34,6 +34,7 @@ class Request:
     @property
     def bytes(self) -> bytes:
         return self.socket.recv(1024)
+
 
 class Flai:
     def __init__(self):
