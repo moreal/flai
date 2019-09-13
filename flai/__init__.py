@@ -20,7 +20,7 @@ class EpollSelector:
         return [
             (self._fd_with_sock[fd], event_mask) for fd, event_mask in self.epoll.poll()
         ]
-    
+
     def close(self):
         self.epoll.close()
         for sock in self._fd_with_sock.values():
@@ -30,7 +30,7 @@ class EpollSelector:
 class Request:
     def __init__(self, sock: socket.socket):
         self.socket = sock
-    
+
     @property
     def bytes(self) -> bytes:
         return self.socket.recv(1024)
@@ -41,7 +41,7 @@ class Flai:
         self.selector = EpollSelector()
         self.routes: Dict[int, Callable[[Request], None]] = dict()
         self.__request_type_size = 1
-        self.__health_check_period = 5.
+        self.__health_check_period = 5.0
 
     def event(self, case: int):
         if case in self.routes:
@@ -68,7 +68,7 @@ class Flai:
     def run(self, host: str, port: int):
         self.server = self.__create_server_socket(host, port)
         self.selector.register(self.server, select.EPOLLIN)
-        
+
         while True:
             selected = self.selector.select()
             for sock, events in selected:
@@ -88,9 +88,8 @@ class Flai:
                             print("Not founded request type:", request_type)
 
     def _get_request_type(self, sock: socket.socket):
-        request_type = int.from_bytes(sock.recv(self.__request_type_size), 'little')
+        request_type = int.from_bytes(sock.recv(self.__request_type_size), "little")
         return request_type
 
     def close(self):
         self.selector.close()
-
